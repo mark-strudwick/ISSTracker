@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>ISS Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+
+</head>
+
+<body>
+
+    <div class="wrapper">
+
+        <div id='mapid'></div>
+
+        <div class="info">
+            <h2>Latitude:</h2>
+            <h2 id='latitude'>0</h2>
+
+            <h2>Longitude:</h2>
+            <h2 id='longitude'>0</h2>
+
+            <h2>Altitude:</h2>
+            <h2 id='altitude'>0</h2>
+
+            <h2>Velocity:</h2>
+            <h2 id='velocity'>0</h2>
+
+            <h2>Visability:</h2>
+            <h3 id='visibility'></h3>
+        </div>
+
+    </div>
+
+    <script>
+        var mymap = L.map('mapid').setView([0, 0], 3);
+
+        const attribution =
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, { attribution });
+        tiles.addTo(mymap);
+
+        const url = "https://api.wheretheiss.at/v1/satellites/25544"
+
+        const marker = L.marker([0, 0]).addTo(mymap);
+
+        async function getData() {
+            const response = await fetch(url);
+            const data = await response.json();
+            const { latitude, longitude, altitude, velocity, visibility } = data;
+
+            document.getElementById('latitude').textContent = latitude;
+            document.getElementById('longitude').textContent = longitude;
+            document.getElementById('altitude').textContent = altitude;
+            document.getElementById('velocity').textContent = velocity;
+            document.getElementById('visibility').textContent = visibility;
+
+            mymap.setView(new L.LatLng(latitude, longitude), 3);
+
+            marker.setLatLng([latitude, longitude]);
+
+            /*if (data.visibility === 'eclipsed') {
+                document.body.style.backgroundColor = "black";
+                document.body.style.color = "white";
+            }
+            else if (data.visibility === 'daylight') {
+                document.body.style.backgroundColor = "white";
+                document.body.style.color = "black";
+            }*/
+        }
+
+        // Used to initialise the page
+        getData();
+
+        // Calls the api for new data every 5 seconds
+        window.setInterval(function () {
+            getData();
+        }, 2000);
+
+        window.addEventListener('load', () => {
+            let windowHeight = window.innerHeight;
+            let windowWidth = window.innerWidth;
+            document.getElementById('mapid').style.height = windowHeight;
+            document.getElementById('mapid').style.width = windowWidth;
+        });
+    </script>
+</body>
+
+</html>
